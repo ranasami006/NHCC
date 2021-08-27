@@ -114,10 +114,10 @@ export default class selectorganization extends Component {
     render() {
 
         return (
-            <SafeAreaView style={{ flex: 1 }}>
-                <StatusBar backgroundColor="transparent" barStyle="light-content" translucent />
+            // <SafeAreaView style={{ flex: 1 }}>
+         
                 <View style={styles.container}>
-
+        <StatusBar style="light" />
                     <ImageBackground source={require('../../assets/Background.png')}
                         style={{
                             height: '100%',
@@ -194,7 +194,7 @@ export default class selectorganization extends Component {
 
 
                 </View>
-            </SafeAreaView>
+           // </SafeAreaView>
         );
     }
 }
@@ -272,7 +272,7 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        backgroundColor: '#fff',
+       // backgroundColor: '#fff',
     },
     arrowLeft: {
         marginTop: responsiveHeight(7),

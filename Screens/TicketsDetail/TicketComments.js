@@ -32,46 +32,53 @@ import { store_comment } from '../backend/api';
 
 const _editor = React.createRef();
 export default class TicketComments extends Component {
-    state = {
+    constructor(props) {
+        super(props);
+
+        this.state = {
         email: '',
         text: '',
         viewText: '',
         ticket_id: this.props.route.params.ticket_id,
+        }
     };
+    
     async componentDidMount() {
         BackHandler.removeEventListener('hardwareBackPress')
-        // let html = convertToHtmlString(this.state.value)
-        console.log(this.state.ticket_id)
+        this.focusListener = this.props.navigation.addListener('focus', async () => {
+            _editor.current.setContents([
+                { insert: '\n' }
+              ]);
+        });
+
     }
 
     async onSubmitClick() {
         var regex = /(<([^>]+)>)/ig
-        
+
         let hasText = !!this.state.viewText.replace(regex, "").length;
         console.log(hasText)
         if (hasText) {
-
-            console.log("if part", this.state.viewText)
             let response = await
                 store_comment(this.state.viewText, this.state.ticket_id)
             if (response.status == 'success') {
 
-                if(Platform.OS){
+                if (Platform.OS === 'ios') {
                     alert(response.message)
                 }
-                else{
-                ToastAndroid.show(response.message, ToastAndroid.LONG);
+                else {
+                    ToastAndroid.show(response.message, ToastAndroid.LONG);
                 }
-                this.setState({text:''})
-                this.props.navigation.navigate("TicketDetail",{
-                    data:this.state.ticket_id,
-                    page:3
-            })
+                this.setState({ text: '' })
+                this.props.navigation.navigate("TicketDetail", {
+                    data: this.state.ticket_id,
+                    page: 3
+                })
 
             }
         }
         else {
-           // console.log("PKKK", this.state.viewText)
+            // console.log("PKKK", this.state.viewText)
             ToastAndroid.show('Please type something to post', ToastAndroid.LONG);
         }
     }
@@ -83,12 +90,14 @@ export default class TicketComments extends Component {
                 {/* <StatusBar backgroundColor="transparent" barStyle="light-content" translucent /> */}
                 <View style={styles.container}>
                     <View style={styles.innerMainView} >
-                    <KeyboardAvoidingView behavior="padding">
+
                         <ScrollView showsVerticalScrollIndicator={false}>
-                            <TouchableOpacity onPress={() => { this.props.navigation.navigate("TicketDetail",{
-                                    data:this.state.ticket_id,
-                                    page:3
-                            }) }}>
+                            <TouchableOpacity onPress={() => {
+                                this.props.navigation.navigate("TicketDetail", {
+                                    data: this.state.ticket_id,
+                                    page: 3
+                                })
+                            }}>
                                 <Image
                                     style={styles.arrowLeft} source={require('../../assets/ArrowLeftSquare.jpg')}>
                                 </Image>
@@ -129,9 +138,9 @@ export default class TicketComments extends Component {
                                 <QuillEditor
                                     style={styles.editor}
                                     ref={_editor}
+                                    initialHtml="&nbsp"
                                     onHtmlChange={({ html }) =>
                                         this.setState({ viewText: html })
-
                                     }
                                     onTextChange={
                                         text => this.setState
@@ -154,7 +163,7 @@ export default class TicketComments extends Component {
                                 </Text>
                             </TouchableOpacity>
                         </ScrollView>
-                        </KeyboardAvoidingView>
+
                     </View>
 
 

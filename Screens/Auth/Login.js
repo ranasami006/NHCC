@@ -13,6 +13,7 @@ import {
     TextInput,
     Dimensions,
     ActivityIndicator,
+
 } from 'react-native';
 import {
     responsiveWidth,
@@ -39,33 +40,44 @@ export default class Login extends Component {
         email: '',
         password: '',
         secureText: true,
+        isFocusedEmail: false,
+        isFocusedPassword: false,
     };
     async componentDidMount() {
 
     }
     async LoginFn() {
-        let success = await LogIn(this.state.email, this.state.password);
+        let success = await LogIn(this.state.email.toLowerCase(), this.state.password);
+       
         if (success.accessToken) {
             try {
                 // if (this.state.checked) {
-                    await AsyncStorage.setItem('accessToken', success.accessToken)
-                    await AsyncStorage.setItem('refreshToken', success.refreshToken)
-
+                await AsyncStorage.setItem('accessToken', success.accessToken)
+                await AsyncStorage.setItem('refreshToken', success.refreshToken)
+            
+               // console.log(success.accessToken)
                 // }
+
                 let userData = await getUserData(success.accessToken)
                 await AsyncStorage.setItem('userData', JSON.stringify(userData.data))
                 await this.setState({ loader: false })
+                console.log("HERE1",userData.data.user.organizations_relation)
                 if (userData.data.user.organizations_relation.length > 1) {
-
-                    this.props.navigation.navigate('selectorganization', { organization: userData.data.user.organizations_relation });
+                    console.log("Success")
+                    this.props.navigation.replace('selectorganization', { organization: userData.data.user.organizations_relation });
                 }
                 else {
+                   
+                    console.log("Success falss",userData.data.user.organizations_relation[0]._id)
+                    
                     await AsyncStorage.setItem('organization_id', userData.data.user.organizations_relation[0]._id)
-                    this.props.navigation.navigate('Tab', { screen: 'Home' });
+                    this.props.navigation.replace('Tab', { screen: 'Home' });
+                    console.log("ÖKKKKK")
                 }
+               // console.log("Here")
 
             } catch (e) {
-
+                console.log("catch Here")
             }
 
         }
@@ -108,16 +120,17 @@ export default class Login extends Component {
     }
     render() {
         return (
-            <SafeAreaView style={{ flex: 1 }}>
-                {/* <StatusBar backgroundColor="transparent" barStyle="light" translucent /> */}
-                <View style={styles.container}>
-                    <ImageBackground source={require('../../assets/Background.png')} 
-                    style={{ flex: 1, resizeMode: 'cover' }}>
+            // <SafeAreaView style={{ flex: 1 }}>
+                 <View style={styles.container}>
+                        <StatusBar style="light" />
+          
+                    <ImageBackground source={require('../../assets/Background.png')}
+                        style={{ flex: 1, resizeMode: 'cover' }}>
                         <ScrollView>
                             <TouchableOpacity style={{
 
                             }}
-                                onPress={() => { this.props.navigation.goBack(); }}
+                                onPress={() => { this.props.navigation.navigate('AuthLoading') }}
                             >
                                 <Image
                                     style={styles.arrowLeft}
@@ -141,12 +154,16 @@ export default class Login extends Component {
                                     alignSelf: 'flex-start',
                                     color: '#6E7191',
                                     fontWeight: '400',
-                                    fontSize: 12,
-                                    lineHeight: 14
+                                    fontSize: 14,
+                                    lineHeight: 14,
+                                    letterSpacing: 1.5,
                                 }}>
                                     Welcome, Please login to your account
                                 </Text>
-                                <View style={styles.emailView}>
+                                <View 
+                                style={!this.state.isFocusedEmail?
+                                styles.emailView:
+                                [styles.PasswordView,{marginTop:responsiveHeight(5)}]}>
                                     <Image style={styles.messageIcon}
                                         source={require('../../assets/Message.png')}>
                                     </Image>
@@ -161,30 +178,39 @@ export default class Login extends Component {
 
                                         <TextInput
                                             style={styles.textinput}
-                                            placeholder={'jane.doe@gmail.com'}
+                                            placeholder={'admin@ascend.com.sa'}
                                             placeholderTextColor={'grey'}
-                                            onSubmitEditing={() => this._password.focus()}
+                                            onSubmitEditing={() => {()=> 
+                                                this.setState({isFocusedEmail:false})
+                                                this.secondTextInput.focus(); }}
                                             returnKeyType="next"
+                                            blurOnSubmit={false}
                                             returnKeyLabel="next"
                                             value={this.state.email}
+                                            onBlur={() => {
+                                                this.setState({ isFocusedEmail: false })
+                                            }}
                                             onChangeText={(text) => {
                                                 this.setState({ email: text });
+                                            }}
+                                            onFocus={() => {
+                                                this.setState({ isFocusedEmail: true })
                                             }}
                                         />
                                     </View>
 
                                 </View>
 
-                                <View style={styles.PasswordView}>
+                                <View style={this.state.isFocusedPassword?styles.PasswordView:[styles.emailView,{marginTop:responsiveHeight(2)}]}>
                                     <TouchableOpacity
                                         style={{ alignSelf: 'center' }}
                                         onPress={() => {
                                             this.setState({ secureText: !this.state.secureText });
                                         }}>
                                         {this.state.secureText ?
-                                           <Feather name="eye" size={24} color="black" style={styles.messageIcon} />
+                                            <Feather name="eye" size={24} color="black" style={styles.messageIcon} />
                                             :
-                                            <Feather name="eye-off" size={24} color="black"  style={styles.messageIcon} />
+                                            <Feather name="eye-off" size={24} color="black" style={styles.messageIcon} />
                                         }
 
                                     </TouchableOpacity>
@@ -196,17 +222,22 @@ export default class Login extends Component {
                                                 lineHeight: 24
                                             }}>Password</Text>
                                             <TextInput
+                                                ref={(input) => { this.secondTextInput = input; }}
                                                 style={styles.textinput}
-                                                placeholder={'**********'}
+                                                placeholder={'password'}
                                                 placeholderTextColor={'grey'}
                                                 secureTextEntry={this.state.secureText}
-                                                //onSubmitEditing={() => this._password.focus()}
-                                                returnKeyType="next"
-                                                returnKeyLabel="next"
                                                 value={this.state.password}
                                                 onChangeText={(text) => {
                                                     this.setState({ password: text });
                                                 }}
+                                                onFocus={() => {
+                                                    this.setState({ isFocusedPassword: true })
+                                                }}
+                                                onBlur={() => {
+                                                    this.setState({ isFocusedPassword: false })
+                                                }}
+                                                
                                             />
                                         </View>
                                         <TouchableOpacity
@@ -214,11 +245,15 @@ export default class Login extends Component {
                                             onPress={() => {
                                                 this.setState({ password: '' })
                                             }}>
-                                            <Image style={styles.crossIcon} source={require('../../assets/Close.png')}>
-                                            </Image>
+                                            {this.state.password.length > 0
+                                                ?
+                                                <Image style={styles.crossIcon} source={require('../../assets/Close.png')}>
+                                                </Image>
+                                                : null}
                                         </TouchableOpacity>
                                     </View>
                                 </View>
+                                
                                 <View style={styles.CheckBoxView}>
                                     <CheckBox
                                         title='Remember Me'
@@ -259,7 +294,7 @@ export default class Login extends Component {
 
 
                 </View>
-            </SafeAreaView>
+           
         );
     }
 }

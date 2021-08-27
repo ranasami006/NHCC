@@ -3,7 +3,7 @@ import { Image, ImagePickerIOS, StyleSheet,View } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createStackNavigator,createNativeStackNavigator } from '@react-navigation/stack';
 import { responsiveWidth, responsiveHeight, responsiveFontSize }
   from 'react-native-responsive-dimensions';
   import {Feather } from '@expo/vector-icons';
@@ -26,10 +26,10 @@ const Main = () => {
 
     <MainStack.Navigator 
     initialRouteName="AuthNavigator" 
-    screenOptions={{ headerShown: false, gestureEnabled: true }} >
+    screenOptions={{ headerShown: false, gestureEnabled: false }} >
+      <MainStack.Screen name="AuthNavigator" component={AuthNavigator} /> 
       <MainStack.Screen name="Tab" component={Tab} />
       <MainStack.Screen name="selectorganization" component={selectorganization} />
-      <MainStack.Screen name="AuthNavigator" component={AuthNavigator} />  
       <MainStack.Screen name="ResetPassword" component={ResetPassword} />
       <MainStack.Screen name="Profile" component={Profile} />
       <MainStack.Screen name="ConstTicketDetail" component={ConstTicketDetail} />
@@ -90,7 +90,7 @@ const ConstTicketDetail = () => {
 
 const Tab = () => {
   return (
-    <AppTabNavigator.Navigator screenOptions={({ route }) => ({
+    <AppTabNavigator.Navigator screenOptions={({ route  }) => ({
       tabBarIcon: ({ focused, color, size }) => {
         let iconName;
         if (route.name === 'Home') {
@@ -108,6 +108,7 @@ const Tab = () => {
 
     })}
       tabBarOptions={{
+        keyboardHidesTabBar:true,
         tabStyle: {
           //backgroundColor: 'blue',
         },
@@ -125,7 +126,7 @@ const Tab = () => {
         },
       }}
     >
-      <AppTabNavigator.Screen name="Home" component={Home}
+      <AppTabNavigator.Screen name="Home" screenOptions={{gestureEnabled: false}} component={Home}
         options={{
           tabBarIcon: ({ focused }) => {
             return (
@@ -162,7 +163,7 @@ const Tab = () => {
           },
         }}
       />
-      <AppTabNavigator.Screen name=" " component={Home}
+      <AppTabNavigator.Screen name=" " component={Profile}
         options={{
           tabBarIcon: ({ focused }) => {
             return (
@@ -183,7 +184,7 @@ const Tab = () => {
           },
         }}
       />
-      <AppTabNavigator.Screen name="Notifications" component={Notification}
+      <AppTabNavigator.Screen name="Notifications" component={Profile}
         options={{
           tabBarIcon: ({ focused }) => {
             return (
@@ -235,18 +236,8 @@ const Tab = () => {
 export default function App() {
   return (
     <NavigationContainer>
-      <Drawer.Navigator initialRouteName="Main"
-        edgeWidth={0}
-        statusBarAnimation={'slide'}
-        hideStatusBar={false}
-        drawerStyle={{
-          backgroundColor: '#fff',
-          width: responsiveWidth(70),
-          borderTopRightRadius: 5,
-        }}>
-        <Drawer.Screen name="Main" component={Main} />
-        {/* <Drawer.Screen name="TabBar" component={TabBar} /> */}
-      </Drawer.Navigator>
+       <Main/>
+       
     </NavigationContainer>
   );
 }

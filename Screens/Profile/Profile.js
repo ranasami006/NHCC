@@ -137,7 +137,13 @@ export default class Profile extends Component {
                 <StatusBar backgroundColor="transparent" barStyle="light-content" translucent />
                 <View style={styles.container}>
 
-                    <ImageBackground source={require('../../assets/Background.png')} style={{ height: '100%', width: '100%' }}>
+                   <Image source={require('../../assets/commingSoon.png')} style={{ height: windowHeight/3.5 , width: windowWidth-150,alignSelf:'center', marginTop:windowHeight/3 }}>
+                       
+                    </Image> 
+
+            <Text style={{alignSelf:'center',marginTop:responsiveHeight(8),
+            fontSize:24,fontWeight:'700',color:'#6E7191',letterSpacing:5}}>Coming Soon</Text>
+                    {/* <ImageBackground source={require('../../assets/Background.png')} style={{ height: '100%', width: '100%' }}>
                         <ScrollView>
                             <TouchableOpacity style={{
                             }}
@@ -273,7 +279,7 @@ export default class Profile extends Component {
 
                         </ScrollView>
                     </ImageBackground>
-
+ */}
 
                 </View>
             </SafeAreaView>

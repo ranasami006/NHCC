@@ -19,13 +19,15 @@ import {
     AlertIOS,
     ActivityIndicator, Alert
     , BackHandler,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+
 }
 
     from 'react-native';
-// Digitum live agent 
+// Digitum liveagent 
 
-    import { StatusBar } from 'expo-status-bar';
+import { StatusBar } from 'expo-status-bar';
+
 import HTMLView from 'react-native-htmlview';
 import HTML from "react-native-render-html";
 import {
@@ -37,7 +39,7 @@ const windowWidth = Dimensions.get('window').width;
 const windowHeight = Dimensions.get('window').height;
 import { MaterialIcons, Entypo, AntDesign } from '@expo/vector-icons';
 import Timeline from 'react-native-timeline-flatlist'
-import { ticket_show, status_update_tickets } from '../backend/api';
+import { ticket_show, status_update_tickets,delteComment } from '../backend/api';
 import Moment from 'moment';
 import PagerView from 'react-native-pager-view';
 export default class TicketDetail extends Component {
@@ -46,7 +48,7 @@ export default class TicketDetail extends Component {
 
         this.state = {
             _id: this.props.route.params.data,
-           
+
             email: '',
             password: '',
             loader: false,
@@ -59,9 +61,11 @@ export default class TicketDetail extends Component {
             pageIndex: this.props.route.params.page,
             modalVisible: false,
             modalVisible1: false,
+            modalVisible2: false,
             ticketData: [],
             status_id: '',
-            
+            commentText:'',
+
             data: [
                 {
                     title: 'Due Date',
@@ -73,8 +77,10 @@ export default class TicketDetail extends Component {
 
         this.setTextareaRef = element => {
             this.textarea = element;
-          };
-       
+        };
+
+
+
 
     };
     async componentDidMount() {
@@ -100,27 +106,27 @@ export default class TicketDetail extends Component {
 
         data.push({ title: 'created_at', description: ticketData1.data.created_at })
         //  data[lengthHistory].description = ticketData1.data.created_at
-        
+
         await this.setState({
             data
         })
 
         await this.setState({
             ticketData: ticketData1.data,
-            //item: ticketData1.data,
+
             loader: false
         })
-        console.log(this.state.pageIndex)
+        console.log(this.state.ticketData.teams_relation)
         this.pager.setPage(this.state.pageIndex)
     }
 
-    async statusUpdate() {
+    async delteCommentFun(){
         let ticket_ids = []
         ticket_ids[0] = this.state._id
-
+        
         let { data } = this.state
         data = []
-        let response = await status_update_tickets(this.state.status_id, ticket_ids)
+        let response = await delteComment(this.state.comment_id)
         if (response.status = 'success') {
             this.setState({ loader: true })
             console.log(response)
@@ -137,46 +143,163 @@ export default class TicketDetail extends Component {
 
             data.push({ title: 'created_at', description: ticketData1.data.created_at })
 
+            await this.setState({ 
+                data,
+                ticketData: ticketData1.data,
+                modalVisible:false,
+                loader: false
+            })
+            this.pager.setPage(3)
+        }
+        else {
+            console.log('False error')
+        }
+    }
+
+    async statusUpdate() {
+        let ticket_ids = []
+        ticket_ids[0] = this.state._id
+        
+        let { data } = this.state
+        data = []
+        if(this.state.commentText){  
+        let response = await status_update_tickets(this.state.status_id, ticket_ids,this.state.commentText)
+        if (response.status = 'success') {
+            this.setState({ loader: true,})
+            console.log(response)
+            if (Platform.OS === 'android') {
+                ToastAndroid.show(response.message, ToastAndroid.LONG);
+            } else {
+                alert(response.message);
+            }
+            let ticketData1 = await ticket_show(this.state._id)
+            data.push({ title: 'Due Date', description: ticketData1.data.duedate })
+            ticketData1.data.history.map((item, index) => {
+                data.push({ title: item.action, description: item.updated_at })
+            });
+            data.push({ title: 'created_at', description: ticketData1.data.created_at })
             await this.setState({
                 data,
                 ticketData: ticketData1.data,
-                //item: ticketData1.data,
-                loader: false
+                modalVisible2:false,
+                loader: false,
+                commentText:''
             })
+            this.pager.setPage(3)
         }
         else {
-            console.log('Fasle error')
+            console.log('False error')
         }
     }
-    
+    else{
+        alert('please type some valueable comments')
+    }
+    }
+
 
     handleCheckbox = (event) => {
-       event.persist();
-        const { position } = event.nativeEvent; 
-         this.setState({
-            pageIndex:position
+        event.persist();
+        const { position } = event.nativeEvent;
+        this.setState({
+            pageIndex: position
         })
-      //  console.log("Current page index", e.nativeEvent)
+        //  console.log("Current page index", e.nativeEvent)
     }
 
     render() {
-      //  this.pager.setPage(this.state.pageIndex);
+        //  this.pager.setPage(this.state.pageIndex);
         return (
-            <SafeAreaView style={{ flex: 1 }}>
 
-                <StatusBar style="light-content" />
-
-
+            <View style={{ flex: 1 }}>
+                {/* <StatusBar barStyle="light-content" />  */}
                 {
                     this.state.loader ?
                         <ActivityIndicator size={'large'} color={'green'} style={{
                             alignSelf: 'center',
                             marginTop: responsiveHeight(10)
-                        }}></ActivityIndicator>
+                        }}>
+                            
+                        </ActivityIndicator>
                         :
                         <View style={styles.container}
-                            blurRadius={this.state.modalVisible ? 4 : 0}
+                            blurRadius={this.state.modalVisible || this.state.modalVisible2 || this.state.modalVisible1 ? 4 : 0}
                         >
+                            <Modal
+                                animationType="slide"
+                                transparent={true}
+
+                                visible={this.state.modalVisible2}
+                                onRequestClose={() => {
+                                    this.setState({ modalVisible2: false })
+                                }}>
+
+                                <TouchableWithoutFeedback
+                                    onPress={() => this.setState({ modalVisible2: false })}>
+                                    <View
+                                        style={{
+                                            position: 'absolute',
+                                            top: 0,
+                                            bottom: 0,
+                                            left: 0,
+                                            right: 0,
+                                            backgroundColor: 'transparent',
+                                        }}
+                                    />
+                                </TouchableWithoutFeedback>
+                                <View style={styles.centeredViewModal2}>
+                                    <View style={styles.modalView2}>
+                                        <View style={styles.emailView}>
+                                            <TextInput
+                                                style={styles.textinput}
+                                                placeholder={'type comment here'}
+                                                placeholderTextColor={'grey'}
+                                                //onSubmitEditing={() => this._password.focus()}
+                                                returnKeyType="next"
+                                                returnKeyLabel="next"
+                                                value={this.state.commentText}
+                                                onChangeText={(text) => {
+                                                    this.setState({ commentText: text });
+                                                }}
+                                            />
+                                        </View>
+                                <View style={{justifyContent:'space-between',flexDirection:'row'}}>
+                                        <TouchableOpacity style={styles.loginBtnModal}
+                                    onPress={() => { 
+                                        this.statusUpdate()             
+                                        }}>
+                                    {this.state.loader ?
+                                        <ActivityIndicator color={'#0F493C'}
+                                            size={'large'}></ActivityIndicator>
+                                        :
+                                        <Text style={{
+                                            alignSelf: 'center', color: 'white',
+                                            fontWeight: '600', fontSize: 16, lineHeight: 28
+                                        }}>
+                                            Confirm
+                                        </Text>
+                                    }
+                                </TouchableOpacity>
+                                <TouchableOpacity style={styles.cancleBtnModal}
+                                    onPress={() => { 
+                                        this.setState({modalVisible2:false})
+                                        }}>
+                                    {this.state.loader ?
+                                        <ActivityIndicator color={'#0F493C'}
+                                            size={'large'}></ActivityIndicator>
+                                        :
+                                        <Text style={{
+                                            alignSelf: 'center', color: '#9B945F',
+                                            fontWeight: '600', fontSize: 16, lineHeight: 28
+                                        }}>
+                                            Cancel
+                                        </Text>
+                                    }
+                                </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                </View>
+                            </Modal>
+
                             <Modal
                                 animationType="slide"
                                 transparent={true}
@@ -185,6 +308,7 @@ export default class TicketDetail extends Component {
                                 onRequestClose={() => {
                                     this.setState({ modalVisible: false })
                                 }}>
+
                                 <TouchableWithoutFeedback
                                     onPress={() => this.setState({ modalVisible: false })}>
                                     <View
@@ -200,20 +324,18 @@ export default class TicketDetail extends Component {
                                 </TouchableWithoutFeedback>
                                 <View style={styles.centeredView}>
                                     <View style={styles.modalView}>
-                                        <TouchableOpacity onPress={() => { this.setState({ modalVisible: false }) }}>
+                                        <TouchableOpacity onPress={() => 
+                                            { 
+                                                this.setState({ modalVisible: false }) }}>
                                             <Image style={{ alignSelf: 'flex-end' }}
                                                 source={require('../../assets/Close.png')}></Image>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={{
-                                            flexDirection: 'row',
-                                            marginLeft: responsiveHeight(3),
-                                        }}>
-                                            <Image style={{ alignSelf: 'center' }}
-                                                source={require('../../assets/EditSquare.png')}></Image>
-                                            <Text style={styles.modalText}>Edit Comment</Text>
-                                        </TouchableOpacity>
-
-                                        <TouchableOpacity style={{
+                                       
+                                        <TouchableOpacity 
+                                        onPress={()=>{
+                                            this.delteCommentFun()
+                                        }}
+                                        style={{
                                             flexDirection: 'row',
                                             marginLeft: responsiveHeight(3),
                                             marginTop: responsiveHeight(2)
@@ -277,8 +399,8 @@ export default class TicketDetail extends Component {
                                                     }}
                                                         onPress={
                                                             async () => {
-                                                                await this.setState({ modalVisible1: false, status_id: 'closed' })
-                                                                this.statusUpdate()
+                                                                await this.setState({ modalVisible1: false, status_id: 'closed', modalVisible2: true })
+                                                                //this.statusUpdate()
                                                             }}
                                                     >
                                                         <Image style={{ alignSelf: 'center', width: 26, height: 26 }}
@@ -292,8 +414,8 @@ export default class TicketDetail extends Component {
                                                     }}
                                                         onPress={
                                                             async () => {
-                                                                await this.setState({ modalVisible1: false, status_id: 'reopened' })
-                                                                this.statusUpdate()
+                                                                await this.setState({ modalVisible1: false, status_id: 'reopened', modalVisible2: true })
+                                                                // this.statusUpdate()
                                                             }}
                                                     >
                                                         <Image style={{ alignSelf: 'center', width: 25, height: 26 }}
@@ -315,9 +437,10 @@ export default class TicketDetail extends Component {
                                                                 async () => {
                                                                     await this.setState({
                                                                         modalVisible1: false,
-                                                                        status_id: 'closed'
+                                                                        status_id: 'closed',
+                                                                        modalVisible2: true
                                                                     })
-                                                                    this.statusUpdate()
+                                                                    //this.statusUpdate()
                                                                 }}
                                                         >
                                                             <Image style={{ alignSelf: 'center', width: 26, height: 26 }}
@@ -331,8 +454,12 @@ export default class TicketDetail extends Component {
                                                         }}
                                                             onPress={
                                                                 async () => {
-                                                                    await this.setState({ modalVisible1: false, status_id: 'solved' })
-                                                                    this.statusUpdate()
+                                                                    await this.setState({
+                                                                        modalVisible1: false,
+                                                                        status_id: 'solved',
+                                                                        modalVisible2: true
+                                                                    })
+                                                                    //this.statusUpdate()
                                                                 }}
                                                         >
                                                             <Image style={{ alignSelf: 'center', width: 26, height: 26 }}
@@ -354,9 +481,10 @@ export default class TicketDetail extends Component {
                                                                     await
                                                                         this.setState({
                                                                             modalVisible1: false,
-                                                                            status_id: 'reopened'
+                                                                            status_id: 'reopened',
+                                                                            modalVisible2: true
                                                                         })
-                                                                    this.statusUpdate()
+                                                                    // this.statusUpdate()
                                                                 }}
                                                         >
                                                             <Image style={{ alignSelf: 'center', width: 26, height: 26 }}
@@ -373,8 +501,8 @@ export default class TicketDetail extends Component {
                                                                 }}
                                                                     onPress={
                                                                         async () => {
-                                                                            await this.setState({ modalVisible1: false, status_id: 'closed' })
-                                                                            this.statusUpdate()
+                                                                            await this.setState({ modalVisible1: false, status_id: 'closed', modalVisible2: true })
+                                                                            // this.statusUpdate()
                                                                         }}
 
                                                                 >
@@ -389,8 +517,11 @@ export default class TicketDetail extends Component {
                                                                 }}
                                                                     onPress={
                                                                         async () => {
-                                                                            await this.setState({ modalVisible1: false, status_id: 'solved' })
-                                                                            this.statusUpdate()
+                                                                            await this.setState({
+                                                                                modalVisible1: false, status_id: 'solved',
+                                                                                modalVisible2: true
+                                                                            })
+                                                                            //this.statusUpdate()
                                                                         }}
                                                                 >
                                                                     <Image style={{ alignSelf: 'center', width: 26, height: 26 }}
@@ -411,13 +542,12 @@ export default class TicketDetail extends Component {
                             nestedScrollEnabled={true}
                             style={{ paddingVertical: 0, }}> */}
 
-
-
-
                             <View style={styles.uperView}>
                                 <ImageBackground source={require('../../assets/RectangleHome.png')}
-                                    style={{ height: '100%', width: '100%', }}>
-                                    <TouchableOpacity onPress={() => { this.props.navigation.navigate("Home") }}>
+                                    style={{ height: '100%', width: '100%' }}>
+                                    <TouchableOpacity onPress={() => {
+                                        this.props.navigation.navigate("Home")
+                                    }}>
                                         <Image style={{
                                             alignSelf: 'flex-start',
                                             marginTop: responsiveHeight(7),
@@ -509,11 +639,11 @@ export default class TicketDetail extends Component {
                             </View>
 
 
-                            <PagerView 
-                            ref={c => { this.pager = c; }}
-                            initialPage={2}
-                            scrollEnabled={true}
-                           
+                            <PagerView
+                                ref={c => { this.pager = c; }}
+                                initialPage={2}
+                                scrollEnabled={true}
+
                                 onPageSelected={
                                     event => this.handleCheckbox(event)
                                 }
@@ -618,7 +748,7 @@ export default class TicketDetail extends Component {
                                                     </Text>
 
                                                     <Text style={[styles.headerText, { color: 'black', fontSize: 14 }]}>
-                                                        {this.state.ticketData.user ? this.state.ticketData.teams_relation[0].name : null}
+                                                        {this.state.ticketData.teams_relation && this.state.ticketData.teams_relation.length > 0 ? this.state.ticketData.teams_relation[0].name : null}
                                                     </Text>
                                                 </View>
                                             </View>
@@ -744,59 +874,62 @@ export default class TicketDetail extends Component {
                                     </ScrollView>
                                 </View>
                                 <View key="4">
-                                   
-                                        {this.state.ticketData.comments && this.state.ticketData.comments.length > 0 ?
-                                            <FlatList
-                                                style={{ marginBottom: responsiveHeight(9.5) }}
-                                                data={this.state.ticketData.comments}
-                                                initialScrollIndex={this.state.ticketData.comments.length-1}
-                                                renderItem={({ item, index }) => {
-                                                    return (
 
-                                                        <View style={styles.commentMainView}>
-                                                            <View style={styles.commentView}>
-                                                                <View style={{ flexDirection: 'row', width: '55%' }}>
-                                                                    <View style={styles.imageNameView}>
-                                                                        <Text style={[styles.nameComment]}>Me</Text>
-                                                                    </View>
-                                                                    <View style={{ alignSelf: 'center', marginLeft: responsiveHeight(1) }}>
-                                                                        <Text style={[styles.nameComment, { color: 'black', }]}>{item.user.name}</Text>
+                                    {this.state.ticketData.comments && this.state.ticketData.comments.length > 0 ?
+                                        <FlatList
+                                            style={{ marginBottom: responsiveHeight(9.5) }}
+                                            data={this.state.ticketData.comments}
+                                            initialScrollIndex={this.state.ticketData.comments.length - 1}
+                                            renderItem={({ item, index }) => {
+                                                return (
 
-                                                                    </View>
+                                                    <View style={styles.commentMainView}>
+                                                        <View style={styles.commentView}>
+                                                            <View style={{ flexDirection: 'row', width: '55%' }}>
+                                                                <View style={styles.imageNameView}>
+                                                                    <Text style={[styles.nameComment]}>{item.user.name.substring(0, 2).toUpperCase()}</Text>
                                                                 </View>
-                                                                <View style={{ flexDirection: 'row', width: '45%' }}>
-                                                                    <View style={{ alignSelf: 'center', marginRight: responsiveHeight(1.5) }}>
+                                                                <View style={{ alignSelf: 'center', marginLeft: responsiveHeight(1) }}>
+                                                                    <Text style={[styles.nameComment, { color: 'black', }]}>{item.user.name}</Text>
 
-                                                                        <Text style={[styles.nameComment, { color: '#6E7191', fontSize: 12 }]}>
-                                                                            {
-                                                                                Moment(item.created_at).format("MMM D YYYY hh:mm A", true)
+                                                                </View>
+                                                            </View>
+                                                            <View style={{ flexDirection: 'row', width: '45%' }}>
+                                                                <View style={{ alignSelf: 'center', marginRight: responsiveHeight(1.5) }}>
 
-                                                                            }
-                                                                        </Text>
-                                                                    </View>
+                                                                    <Text style={[styles.nameComment, { color: '#6E7191', fontSize: 12 }]}>
+                                                                        {
+                                                                            Moment(item.created_at).format("MMM D YYYY hh:mm A", true)
 
-                                                                    <TouchableOpacity
-                                                                        style={{ alignSelf: 'center', marginRight: responsiveHeight(2) }}
-                                                                        onPress={() => {
-                                                                            this.setState({
-                                                                                modalVisible: true,
-                                                                            })
-                                                                        }}>
-                                                                        <Image style={{ alignSelf: 'center' }}
-                                                                            source={require('../../assets/MoreSquare.png')}></Image>
-                                                                    </TouchableOpacity>
+                                                                        }
+                                                                    </Text>
                                                                 </View>
 
+                                                                <TouchableOpacity
+                                                                    style={{ alignSelf: 'center', marginRight: responsiveHeight(2) }}
+                                                                    onPress={() => {
+                                                                        this.setState({
+                                                                            modalVisible: true,
+                                                                            comment_id:item._id
+                                                                        });
+                                                        
+
+                                                                    }}>
+                                                                    <Image style={{ alignSelf: 'center' }}
+                                                                        source={require('../../assets/MoreSquare.png')}></Image>
+                                                                </TouchableOpacity>
                                                             </View>
 
-                                                            <View style={styles.commentText}>
+                                                        </View>
 
-                                                                <HTML
+                                                        <View style={styles.commentText}>
 
-                                                                    source={{ html: item.content }}
+                                                            <HTML
 
-                                                                />
-                                                                {/* <HTMLView
+                                                                source={{ html: item.content }}
+
+                                                            />
+                                                            {/* <HTMLView
                                                                             value={
                                                                                 item.content
                                                                             }
@@ -808,34 +941,34 @@ export default class TicketDetail extends Component {
 
                                                                             }}
                                                                         /> */}
-                                                            </View>
-                                                            <View
-                                                                style={{
-                                                                    borderTopWidth: 0.5,
-                                                                    borderTopColor:
-                                                                        '#6E7191', width: '95%',
-                                                                    alignSelf: 'center',
-                                                                    marginBottom: responsiveHeight(1)
-                                                                }}
-                                                            />
-
-
-
                                                         </View>
-                                                    );
-                                                }}
-                                                keyExtractor={item => item._id}
-                                            />
-                                            : <Text style={{
-                                                alignSelf: 'center',
-                                                marginTop: responsiveHeight(2)
+                                                        {/* <View
+                                                            style={{
+                                                                borderTopWidth: 0.5,
+                                                                borderTopColor:
+                                                                    '#6E7191', width: '95%',
+                                                                alignSelf: 'center',
+                                                                marginBottom: responsiveHeight(1)
+                                                            }}
+                                                        /> */}
 
-                                            }}>
-                                                No comments on this ticket
-                                            </Text>
 
-                                        }
-                                   
+
+                                                    </View>
+                                                );
+                                            }}
+                                            keyExtractor={item => item._id}
+                                        />
+                                        : <Text style={{
+                                            alignSelf: 'center',
+                                            marginTop: responsiveHeight(2)
+
+                                        }}>
+                                            No comments on this ticket
+                                        </Text>
+
+                                    }
+
                                 </View>
                             </PagerView>
 
@@ -859,12 +992,32 @@ export default class TicketDetail extends Component {
 
                         </View>
                 }
-            </SafeAreaView>
+            </View>
         );
     }
 
 }
 const styles = StyleSheet.create({
+    loginBtnModal: {
+        width:'40%',
+        height: responsiveHeight(8),
+        backgroundColor: '#9B945F',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        marginTop: responsiveHeight(3),
+        borderRadius: 15,
+    },
+    cancleBtnModal:{
+        width:'40%',
+        height: responsiveHeight(8),
+        borderColor : '#9B945F',
+        alignSelf: 'center',
+        justifyContent: 'center',
+        marginTop: responsiveHeight(3),
+         borderRadius: 10,
+         borderWidth: 1,
+         
+    },
     PagerView: {
         flex: 1,
 
@@ -874,7 +1027,7 @@ const styles = StyleSheet.create({
     },
     container: {
         flex: 1,
-        backgroundColor: '#E5E5E5',
+        // backgroundColor: '#E5E5E5',
     },
     topleftView: {
         paddingLeft: responsiveHeight(3),
@@ -1027,7 +1180,29 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         borderRadius: responsiveHeight(2),
     },
-
+    centeredViewModal2: {
+        flex: 1,
+        alignSelf: 'center',
+        width: windowWidth - 80,
+        justifyContent:'center',
+    },
+    modalView2: {
+      //  margin: responsiveHeight(10),
+        backgroundColor: 'white',
+        borderRadius: 15,
+        padding: 35,
+        //alignItems: 'center',
+        shadowColor: '#000',
+        shadowOffset: {
+            width: 0,
+            height: 2,
+        },
+        shadowOpacity: 0.25,
+        shadowRadius: 3.84,
+        elevation: 5,
+        height:windowHeight/3,
+        alignSelf:'center',
+    },
 
     centeredView: {
         flex: 1,
@@ -1069,5 +1244,23 @@ const styles = StyleSheet.create({
         marginLeft: responsiveHeight(3),
         color: '#6E7191',
         fontSize: 16,
+    },
+    emailView: {
+        width: "100%",
+        height: "40%",
+        //backgroundColor: '#F2F3FD',
+        alignSelf: 'center',
+        borderRadius: 15,
+        //marginTop: responsiveHeight(3),
+        flexDirection: 'row',
+        alignContent: 'center',
+        borderWidth: 1,
+        borderColor: '#D0D3E8',
+        alignContent: 'center',
+        flexDirection: 'row',
+    },
+    textinput: {
+        padding: responsiveHeight(2),
+        width: '100%'
     },
 });

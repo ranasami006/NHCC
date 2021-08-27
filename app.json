@@ -1,12 +1,12 @@
 {
   "expo": {
-    "name": "NHCC",
-    "slug": "NHCC",
-    "version": "1.0.0",
+    "name": "Digitum LiveAgent",
+    "slug": "DigitumLiveAgent",
+    "version": "1.0.1",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/appstore.png",
     "splash": {
-      "image": "./assets/splash2.png",
+      "image": "./assets/splash.png",
       "resizeMode": "cover",
       "backgroundColor": "#ffffff"
     },
@@ -15,18 +15,18 @@
     },
     "assetBundlePatterns": [
       "**/*"
-    ],
+    ], 
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/appstore.png",
         "backgroundColor": "#FFFFFF"
       },
       "allowBackup":false,
-      "package": "com.ranasami06.NHCC"
-     
+      "package": "com.ranasami06.DigitumLiveAgent",
+      "versionCode": 3
     },
     "web": {
       "favicon": "./assets/favicon.png"
