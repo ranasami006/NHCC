@@ -726,8 +726,7 @@ export default class Home extends Component {
                                 style={styles.tabItem}
                                 onPress={() => this.setState({ index: i })}
                             >
-                                <Animated.View 
-                                
+                                <Animated.View           
                                 style={{
                                     width: '80%',
                                     height: 40,

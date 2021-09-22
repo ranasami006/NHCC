@@ -3,10 +3,12 @@ import { Image, ImagePickerIOS, StyleSheet,View } from 'react-native'
 import { NavigationContainer } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
+
 import { createStackNavigator,createNativeStackNavigator } from '@react-navigation/stack';
 import { responsiveWidth, responsiveHeight, responsiveFontSize }
   from 'react-native-responsive-dimensions';
-  import {Feather } from '@expo/vector-icons';
+import {Feather } from '@expo/vector-icons';
 import Login from './Screens/Auth/Login'
 import ResetPassword from './Screens/Auth/ResetPassword'
 import Authloadingcheck from './Screens/Authloadingcheck'
@@ -19,25 +21,24 @@ import TicketDetail from './Screens/TicketsDetail/TicketDetail'
 import Notification from  './Screens/Notification/Notification'
 const Drawer = createDrawerNavigator();
 const MainStack = createStackNavigator();
-const AppTabNavigator = createBottomTabNavigator();
+//const AppTabNavigator = createBottomTabNavigator();
 const OverViewStack = createStackNavigator();
+const AppTabNavigator = createMaterialTopTabNavigator();
+
 const Main = () => {
   return (
-
     <MainStack.Navigator 
     initialRouteName="AuthNavigator" 
     screenOptions={{ headerShown: false, gestureEnabled: false }} >
       <MainStack.Screen name="AuthNavigator" component={AuthNavigator} /> 
-      <MainStack.Screen name="Tab" component={Tab} />
+      <MainStack.Screen name="Tab" component={Tab} />  
       <MainStack.Screen name="selectorganization" component={selectorganization} />
       <MainStack.Screen name="ResetPassword" component={ResetPassword} />
       <MainStack.Screen name="Profile" component={Profile} />
       <MainStack.Screen name="ConstTicketDetail" component={ConstTicketDetail} />
     </MainStack.Navigator>
   );
-
 }
-
 
 Main.navigationOptions = ({ navigation }) => {
   let drawerLockMode = 'unlocked';
@@ -51,7 +52,8 @@ Main.navigationOptions = ({ navigation }) => {
 };
 const AuthNavigator = () => {
   return (
-    <MainStack.Navigator initialRouteName="Authloadingcheck" screenOptions={{ headerShown: false, gestureEnabled: false }} >
+    <MainStack.Navigator initialRouteName="Authloadingcheck" 
+    screenOptions={{ headerShown: false, gestureEnabled: false }} >
       <MainStack.Screen name="Authloadingcheck" component={Authloadingcheck} />
       <MainStack.Screen name="AuthLoading" component={AuthLoading} />
       <MainStack.Screen name="Login" component={Login} />
@@ -85,6 +87,69 @@ const ConstTicketDetail = () => {
 //       <MainStack.Screen name="Settings" component={Settings} />
 //       <MainStack.Screen name="EditInfo" component={EditInfo} />
 //     </MainStack.Navigator>
+//   );
+// }
+
+// const TabBar = () => {
+//   return (
+//     <TopTab.Navigator
+//       swipeEnabled={true}
+//       tabBarOptions={{
+//         showLabel: false,
+//         showIcon: true,
+//         activeTintColor: 'blue',
+//         swipeEnabled: false,
+//         style: {
+//           height: 70,
+//           //marginTop: Constants.statusBarHeight,
+//           borderBottomRightRadius: 25,
+//           borderBottomLeftRadius: 25,
+//           elevation: 20,
+//           shadowOffset: {
+//             width: 20, height: 20 // for iOS
+//           },
+
+//           borderColor: 'transparent'
+//         },
+//         indicatorStyle: {
+//           backgroundColor: 'transparent',
+//         },
+//       }}
+//     >
+
+//       <TopTab.Screen name="Home" component={Home}
+//         options={{
+//           tabBarLabel: 'Home',
+//           tabBarIcon: ({ focused }) =>
+//             !focused ? (
+//               <Image
+//                 //source={require('./assets/icon/Moviesicon.png')}
+//                 style={styles.icon}></Image>
+//             ) : (
+//               <Image
+//                 //source={require('./assets/icon/Moviesicon2.png')}
+//                 style={styles.icon}></Image>
+//             ),
+//         }}
+//       />
+//       <TopTab.Screen name="Profile" component={Home}
+//         options={{
+//           tabBarLabel: 'Homescreen',
+//           tabBarIcon: ({ focused }) =>
+//             !focused ? (
+//               <Image
+//               //  source={require('./assets/icon/Searchicon.png')}
+//                 style={styles.icon}></Image>
+//             ) : (
+//               <Image
+//                 //source={require('./assets/icon/Searchicon2.png')}
+//                 style={styles.icon}></Image>
+//             ),
+//         }}
+//       />
+     
+//     </TopTab.Navigator>
+
 //   );
 // }
 
@@ -126,7 +191,8 @@ const Tab = () => {
         },
       }}
     >
-      <AppTabNavigator.Screen name="Home" screenOptions={{gestureEnabled: false}} component={Home}
+      <AppTabNavigator.Screen name="Home" 
+      screenOptions={{gestureEnabled: false}} component={Home}
         options={{
           tabBarIcon: ({ focused }) => {
             return (
@@ -218,8 +284,7 @@ const Tab = () => {
                 <Image
                  source={require("./assets/AppIcons/Settingslight.png")}
                   style={styles.home}
-                />
-             
+                />  
               )
             );
           },

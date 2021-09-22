@@ -30,7 +30,6 @@ const DEMO_OPTIONS_2 = [
     { "name": "Supply Chain", "uri": require("../../assets/Frame.png") },
     { "name": "Regional Lab", "uri": require("../../assets/Pen.png") },
 ];
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 export default class selectorganization extends Component {
     state = {
@@ -117,7 +116,7 @@ export default class selectorganization extends Component {
             // <SafeAreaView style={{ flex: 1 }}>
          
                 <View style={styles.container}>
-        <StatusBar style="light" />
+                <StatusBar style="light" />
                     <ImageBackground source={require('../../assets/Background.png')}
                         style={{
                             height: '100%',
